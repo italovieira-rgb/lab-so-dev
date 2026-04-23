@@ -173,4 +173,4 @@ filesystems                  lftp.conf      pam.d                  sgml         
 # e que rotinas de dispositivo traduziam comandos.
 # Em qual diretório do Linux você reconhece essa função?
 
-Resposta: seria o /dev 
+Resposta: seria o /dev, que tem a função de armazenamento arquivos especiais no hardware.
