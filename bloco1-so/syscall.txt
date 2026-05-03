@@ -45,6 +45,7 @@ write(1, "Modo usuario -> kernel via write()\n", 35) = 35
 #    de usuário consegue fazer I/O sem executar instruções privilegiadas diretamente.
 
 Resposta 1:
+Como o nosso programa roda no "modo usuário", ele não tem privilégio pra mexer direto nas peças do computador (hardware), tipo o teclado ou o monitor, pra evitar que a gente estrague alguma coisa no sistema. Pelo que o strace mostrou, o que a gente faz é usar uma chamada de sistema , como o `write`. Basicamente, o nosso programa pede "por favor" pro Sistema Operacional fazer a leitura ou escrita pra ele. Aí o sistema entra no "modo kernel" (onde ele tem poder total), faz o que tem que fazer com segurança, e devolve a resposta pro nosso programa.
 
 
 # 2. Na apresentação sobre a genealogia do software, vimos que os programas de canal
@@ -53,3 +54,4 @@ Resposta 1:
 #    operacional moderno herda esse papel? 
 
 Resposta 2:
+Hoje em dia quem faz esse papel é o DMA (Direct Memory Access, ou Acesso Direto à Memória). Ele funciona tipo um ajudante do processador. Em vez do processador (CPU) ter que parar tudo o que tá fazendo pra ficar movendo arquivo do HD pra memória RAM, a CPU só dá a ordem: "DMA, copia esses dados aí pra mim". O DMA faz todo o trabalho de transferência sozinho. Enquanto isso, o processador fica livre pra rodar o nosso jogo ou o navegador, e o DMA avisa a CPU só quando terminar de copiar tudo.
