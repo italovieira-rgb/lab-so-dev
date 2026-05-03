@@ -6,36 +6,63 @@
 # Cole abaixo a saída de cada comando e anote o que observou.
 
 echo $$
-  PID do shell: 
+  PID do shell: 48
 
 cat /proc/[PID]/status   (substitua [PID] pelo número real)
-  PID:
-  PPID (processo pai):
-  State:
+  PID:48
+  PPID (processo pai):1
+  State:S (sleeping)
 
 cat /proc/[PID]/stat (campos relevantes)
-  Campo 2 — nome do executável:
-  Campo 3 — estado:
-  Campos 14 e 15 — utime / stime:
+  Campo 2 — nome do executável:0022
+  Campo 3 — estado:S (sleeping)
+  Campos 14 e 15 — utime / stime:48
 
 ps aux (primeiras linhas)
-  [cole aqui]
+USER       PID %CPU %MEM    VSZ   RSS TTY      STAT START   TIME COMMAND
+root         1  0.1  1.3   3136  2516 ?        S    14:09   0:00 /bin/sh /sbin/init
+root         2  0.0  0.0      0     0 ?        S    14:09   0:00 [kthreadd]
+root         3  0.0  0.0      0     0 ?        I    14:09   0:00 [kworker/0:0]
+root         4  0.0  0.0      0     0 ?        I<   14:09   0:00 [kworker/0:0H]
+root         5  0.0  0.0      0     0 ?        I    14:09   0:00 [kworker/u2:0]
+root         6  0.0  0.0      0     0 ?        I<   14:09   0:00 [mm_percpu_wq]
+root         7  0.0  0.0      0     0 ?        S    14:09   0:00 [ksoftirqd/0]
+root         8  0.0  0.0      0     0 ?        S    14:09   0:00 [kdevtmpfs]
+root         9  0.0  0.0      0     0 ?        I<   14:09   0:00 [netns]
+root        10  0.0  0.0      0     0 ?        S    14:09   0:00 [oom_reaper]
+root        11  0.0  0.0      0     0 ?        I<   14:09   0:00 [writeback]
+root        12  0.0  0.0      0     0 ?        I<   14:09   0:00 [crypto]
+root        13  0.0  0.0      0     0 ?        I<   14:09   0:00 [kblockd]
+root        14  0.0  0.0      0     0 ?        S    14:09   0:00 [kswapd0]
+root        15  0.0  0.0      0     0 ?        I    14:09   0:00 [kworker/0:1]
+root        32  0.0  0.0      0     0 ?        S    14:09   0:00 [khvcd]
+root        33  0.0  0.0      0     0 ?        I    14:09   0:00 [kworker/u2:1]
+root        43  0.0  0.7   1944  1472 ?        Ss   14:09   0:00 dhcpcd
+root        48  0.2  1.5   6204  2944 hvc0     Ss   14:09   0:00 sh -l
+root       104  5.6  1.4   8180  2740 hvc0     R+   14:15   0:00 ps aux
 
 
 # PARTE B — Processo filho
 # Cole a saída dos comandos e responda:
 
 sleep 5m &
-  PID do filho: 
+  PID do filho:105 
 
-cat /proc/[FILHO]/status | grep -E "Pid|PPid|State"
-  [cole aqui]
+State:  S (sleeping)
+  Tgid:   105
+  Pid:    105
+  PPid:   48
 
 ps -o pid,ppid,stat,cmd (antes do kill)
-  [cole aqui]
+    PID    PPID STAT CMD
+     48       1 Ss   sh -l
+    105      48 S    sleep 5m
+    106      48 R+   ps -o pid,ppid,stat,cmd
 
 ps -o pid,ppid,stat,cmd (depois do kill)
-  [cole aqui]
+    PID    PPID STAT CMD
+     48       1 Ss   sh -l
+    107      48 R+   ps -o pid,ppid,stat,cmd
 
 
 # PARTE C — Questões de síntese
@@ -46,7 +73,8 @@ ps -o pid,ppid,stat,cmd (depois do kill)
 #    criados no Linux?
 
 Resposta 1:
-
+Esse encadeamento sugere que os processos no Linux são criados de forma hierárquica, estruturados como uma grande "árvore genealógica". 
+Todo processo (com exceção do PID 1, o `init`, que é a raiz) é obrigatoriamente criado por um processo preexistente. O processo que cria é o "pai" (identificado pelo PPID) e o processo gerado é o "filho" (identificado pelo PID). O Sistema Operacional Linux gerencia isso clonando o processo pai (via system call `fork()`) e, em seguida, substituindo a execução desse clone pelo novo programa (via system call `exec()`). No seu caso, o `init` (PID 1) criou o `sh` (PID 48), que por sua vez criou o `sleep` (PID 105).
 
 # 2. O arquivo /proc/<PID>/status mostra o campo State com uma letra
 #    (S, R, Z...). Depois de executar kill $FILHO e rodar ps novamente,
@@ -54,3 +82,4 @@ Resposta 1:
 #    sobre a vida de um processo?
 
 Resposta 2:
+O processo filho foi encerrado imediatamente e desapareceu da lista de processos ativos (sua linha não aparece mais na saída do `ps`). Isso comprova que um processo é uma abstração estritamente temporária e dinâmica: ele possui um ciclo de vida finito gerido pelo Sistema Operacional. Ele nasce, muda de estado conforme executa (R), aguarda eventos/recursos (S) e, finalmente, "morre", momento em que a CPU e a memória que ele ocupava são recuperadas pelo sistema. O fato de termos usado o comando `kill` também demonstra que o fluxo de execução de um processo pode ser interrompido externamente através de sinais de controle .
